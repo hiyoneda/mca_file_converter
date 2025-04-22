@@ -84,18 +84,24 @@ class MCAfile:
                         value = _[1].replace("\n", "")
                         self.dpp_status[key] = self.convert_value(value)
 
-    def save_histogram(self, outfilename, histname = "mca_spectrum"):
+    def save_histogram(self, outfilename, histname = "mca_spectrum", histname_countrate = "countrate_spectrum"):
         nbin = len(self.data)
 
         rootfile = ROOT.TFile(outfilename, "recreate")
 
         histogram = ROOT.TH1D(histname, histname + ";ADC;Counts", nbin, 0, nbin)
 
+        histogram_countrate = ROOT.TH1D(histname_countrate, histname_countrate + ";ADC;Count Rate (s-1)", nbin, 0, nbin)
+
         for ibin in range(nbin):
             histogram.SetBinContent(ibin+1, self.data[ibin])
+            histogram_countrate.SetBinContent(ibin+1, self.data[ibin])
+
+        histogram_countrate.Scale(1.0/self.pmca_spectrum["LIVE_TIME"])
 
         rootfile.cd()
         histogram.Write()
+        histogram_countrate.Write()
         rootfile.Close()
 
     def save_parameterfile(self, outfilename):
